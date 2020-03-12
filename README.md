@@ -9,7 +9,7 @@ Habanero is a High Performance Computing (HPC) cluster that grants Columbia rese
 * Running a server (e.g. Jupyter!) 
 
 Some HPC basics: 
-* Get Access to Habanero by asking Doug or asking Eric Vlach at ISERP. Eric would add you to the Social Science Computing Committee (sscc) group. 
+* Get Access to Habanero by asking Doug or asking Eric Vlach at ISERP. Eric would add you to the Social Science Computing Committee (sscc) group.
 * You will be interacting with a remote server: we do that through a Unix-shell, using the SSH (Secure Shell) Protocol.  For Mac users, use the 'Terminal' app. For Windows users, you will need to [SSH via PuTTY](https://www.ssh.com/ssh/putty/windows/).
 * When you log in, you will typically see this Very Important Notice, so when you login you will either need to 'interactively' srun to a node (typically small one-off jobs,  *including while installing packages*) or sbatch (wrap a script that does all processing you want and saves all the output to disk in a wrapper) to send your script to a node.
     > ATTENTION ATTENTION!
@@ -44,7 +44,12 @@ This repo combines the following resources:
  - Claire's presentation (forked) 
  - guides from the [Research Computing in Natural Sciences course](https://rabernat.github.io/research_computing/introduction-to-the-habanero-hpc-cluster.html) and the [Eaton Lab](https://eaton-lab.org/articles/Eaton-lab-HPC-setup/)
  - [official Habanero documentation](https://confluence.columbia.edu/confluence/display/rcs/Habanero+HPC+Cluster+User+Documentation) 
- 
+    
+## Setup Habanero with Jupyter 
+Basics (without Jupyter):
+* [How_to_use_Habanero.pdf](https://github.com/ClairePalandri/HABANERO-HPC_material/blob/master/How_to_use_Habanero.pdf)
+* [Habanero documentation](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Getting+Started)
+
 This setup is geared towards Sustainable Development PhD students.  What that means is that we'll account for usage of:
 * Large Datasets
     * Habanero only provides 10GB of private space, so we minimize use of that wherever possible, so we utilize the scratch space wherever possible.
@@ -53,27 +58,31 @@ This setup is geared towards Sustainable Development PhD students.  What that me
 * Working with geopspatial and other software languages
     * GDAL (the base geospatial library for nearly anything) notoriously breaks installations if you don't do it right off the bat, so we do that when installing.
     * People use matlab, R, julia, python, and we want to set them up to be interoperable on jupyter. We'll use the julia version from modules, follow Claire's work on R but add IRkernel, and will figure out matlab eventually...
-    
-## Setup Habanero with Jupyter 
-Basics (without Jupyter):
-* [How_to_use_Habanero.pdf](https://github.com/ClairePalandri/HABANERO-HPC_material/blob/master/How_to_use_Habanero.pdf)
-* [Habanero documentation Getting Started](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Getting+Started)
 
-1. Set up ssh
-* [(optional) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
-* [(optional) Set up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/)
- > Write `ssh habanero` instead of `ssh <UNI>@habanero.rcs.columbia.edu`. If transferring lots of data, it's also worth setting up an alias for [habaxfer](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Working+on+Habanero)
+### Instructions
+1. Make sure you have access to Habanero! Ask Doug or Eric Vlach. 
+1. SSH into habanero (windows requires the [PuTTY SSH client](https://www.ssh.com/ssh/putty/windows))
+ * `ssh <UNI>@habanero.rcs.columbia.edu`
+ * You can set up the command to just be `ssh habanero`, by [setting up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/)
+ * [(optional) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
 1. Set up your scratch space
- > `cd /rigel/{group}/users/
- > ls -l
- > mkdir {UNI}
- > chmod 2700 {UNI}
- > cd {UNI}
- > scratch=$(pwd)
- > user=$(whoami)
- > add a symbolic link
- > cd ~
- > ln -s ${scratch}/${user} scratch
+ * You will be given a group when you are given access to Habanero. You most likely will be part of the 'SSCC' group. This means that you have access to your \$HOME directory (10GB) at `/rigel/home/<UNI>`, and your group directory (10-20TB) at `rigel/sscc/`
+ * We want to set up a 'personal folder' in the group directory that other people in the group can't access, delete or modify. Furthermore we want to make it easy to access (we'll create a shortcut known as a [symbolic link](https://en.wikipedia.org/wiki/Symbolic_link)) because 10GB runs out really quickly.
+ * Navigate to your group directory
+  > `cd /rigel/{group}/users/
+ 
+
+
+ * > `cd /rigel/{group}/users/
+ * > ls -l
+ * > mkdir {UNI}
+ * > chmod 2700 {UNI}
+ * > cd {UNI}
+ * > scratch=$(pwd)
+ * > user=$(whoami)
+ * > add a symbolic link
+ * > cd ~
+ * > ln -s ${scratch}/${user} scratch
 1. Install miniconda
  Run sbash.sh (this is just srun --pty -A <group> /bin/bash)
      > mv sbash.sh ~ # move sbash script to your home directory
@@ -81,57 +90,3 @@ Basics (without Jupyter):
      > chmod 755 sbash.sh # change permissions so you can run a script
      > chmod 755 conda_install.sh
      > ./sbash # Runs the script.  In a few seconds, you'll have a 4GB interactive core on a *node* running bash. Keep this here because you can always access a node quickly using it.
-     > 
- 
- 
-
-
-
-In addition you may want to:
-
-
-
-* In addition to the above 
-## Instructions
-   
-   
-
-
-
-
-
-
-Steps:
- * Set up your habanero account. Ask Eric Vlach at ISERP to give you access!
- * Figure out habaxfer, which we use to transfer big files instead of habanero
- * setup ssh aliases so you don't need to remember IP addresses
- * ssh into habanero!
-  * clone this directory!
-  * move everything into home directory
-  * download the miniconda installer
-  * set up your scratch space
-	* permissions so that other people can't access it (make it private except from the administrators)
-	* symbolic link from home directory
-	* now you can access your scratch space at ~/scratch.
- * srun 
-	* Installing takes processing power
-	* Using processing power on a login node will get you kicked off habanero
- * Now download miniconda
- * Install miniconda
- * Install base anaconda requirements (with gdal) into your scratch space, give that environment a name!
- * source or conda activate that environment
- * install any other packages you want there. 
- * (Optional) Set up another environment with just R, matlab, julia kernels
- * Basic scripts
-	* Squeue.sh is squeue -u $UNI
-	* sbash.sh is srun --pty -A sscc /bin/bash
- * Sbatch scripts
-	* Setup your jupyter notebook
-	* In addition to Claire's stuff, you'll have a bunch of stuff to set up a SERVER on the cluster. 
-	* The server can allow you to forward a port to your computer. 
-	* You can then ssh into the port, accessing the jupyter notebook server running on the node in addition to the login node you have. 
-	* It will also activate the environment of your choice. 
-
-More online information & support is provided by Columbia:
-  * https://cuit.columbia.edu/shared-research-computing-facility
-  * https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Getting+Started
