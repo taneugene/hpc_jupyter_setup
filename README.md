@@ -60,20 +60,23 @@ Basics (without Jupyter):
 #### SSH into Habanero
 1. SSH into habanero (windows requires the [PuTTY SSH client](https://www.ssh.com/ssh/putty/windows))
  * `ssh <UNI>@habanero.rcs.columbia.edu`
- * You can set up the command to just be `ssh habanero`, by [setting up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/)
- * [(optional) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
+ * You can set up the command to just be `ssh habanero`, by [setting up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/).
+ * [(optional for github users) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh). I tend to commit everything back and forth (apart from data which I exclude using [.gitignore](https://git-scm.com/docs/gitignore)) to sync my computer and habanero.
  
 #### Scratch Storage
 When you login to Habanero, you will be at your home directory `~` on a login node (holmes, watson). So you should see something like this:
 `[pt2535@holmes ~]$`
 This directory has 10GB. Appropriate for smaller files: docs, source code, scripts, but in general it's not enough. 
 
-You also have your group account's scratch storage /rigel/<group>. It's known as scratch storage because it isn't backed up!
+You also have your group account's scratch storage `/rigel/<group>`. It's known as scratch storage because it isn't backed up!
  > Ex: /rigel/cwc and /rigel/sscc has size = 20 TB, no default User Quota.
+ 
 We want to set up a 'personal folder' in the group directory that other people in the group can't access, delete or modify by changing their permission settings. Furthermore we want to make it easy to access (we'll create a shortcut known as a [symbolic link](https://en.wikipedia.org/wiki/Symbolic_link)) because 10GB runs out really quickly. 
 
-NB: Replace <group> or with your account (e.g. cwc, sscc) and <user> or <UNI> or ${UNI} with your uni throughout this walkthrough. Replace ${scratch} pr <scratch> with your path /rigel/<group>/users/
-```
+NB: Replace <group> or with your account (e.g. cwc, sscc) and <user> or <UNI> or ${UNI} with your uni throughout this walkthrough. Replace ${scratch} or <scratch> with your path /rigel/<group>/users/ 
+> `<>` brackets mean you have to change them. `${}` means that if you set up variables then you can copy and paste the script including them inside. 
+
+```bash
 # Navigate to your group accounts scratch storage
 cd /rigel/<group>/users 
 ls -l # notice that some people's security settings mean you can access their files.
@@ -82,17 +85,110 @@ scratch=$(pwd)
 user=$(whoami)
 # Make a directory isn't there make it
 mkdir ${user}
+# Download this directory to it
+git clone git@github.com:taneugene/hpc_jupyter_setup.git
 # Remove group access
 chmod 2700 ${user}
 # add a symbolic link to your home directory
-cd ~
-ln -s ${scratch}/${user} scratch
+ln -s ${scratch}/${user} ~/scratch
+# Check that your symbolic link works! You should see this repository
+cd ~/
+cd scratch
 ```
 
+#### Miniconda and Jupyter installation
+We use miniconda as our package manager.  It's the easiest way to manage, share and distribute your computing environments for python. We don't use the module on slurm because it's out of date, causes some bugs when installing from conda-forge, and we can't update it ourselves.
 
+Now we're going to do some computationally heavy installs. We don't want to install stuff on the login node because of the 'Very Important Notice' above. So we are going to use an [Interactive Job](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Submitting+Jobs#Habanero-SubmittingJobs-InteractiveJobs) to install. 
 
+From the link:
+> To submit an interactive job, run the following, where "<ACCOUNT>" is your group's account name.   
+`srun --pty -t 0-01:00 -A <ACCOUNT> /bin/bash`
 
-This setup is geared towards Sustainable Development PhD students.  What that means is that we'll account for usage of:
+What this means is that you'll have an hour to run bash on this account. I like to not remember this, so I save it as a script ([sbash.sh](./sbash.sh)), which I put in my root directory `mv sbash.sh ~` so I can always switch from login to interactive by typing just `~/sbash.sh'. You may have to give the script permission to execute `chmod 755 ~/sbash.sh`. I remove the walltime. If you're not on group sscc, you may need to modify that script. 
+    
+Running the srun script, you should notice that the bar is different: `[pt2535@node059 ~]$`. Now you're on a compute node! 
+
+Now, you can copy over the [setup.sh](./setup.sh) script and just run it, or you can run each line by yourself and learn some bash.
+
+```bash
+# Installs miniconda and an environment called susdev
+
+# Conda setup
+
+# Download miniconda to home
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+# run miniconda, install in your scratch directory
+bash ~/miniconda.sh -p ~/scratch/miniconda
+# add conda to your path 
+eval "$(/rigel/sscc/users/pt2535/miniconda/bin/conda shell.bash hook)"
+# set conda to run every time you login
+conda init
+# add a channel (with geospatial libraries) and prioritize it
+conda config --add channels conda-forge
+# this breaks with conda 4.5, so this is why we install miniconda manually
+conda config --set channel_priority strict
+# Set your default environment dircectory to be scratch
+# IMPORTANT: we need the scratch symbolic link in the home directory as in the last section!
+# https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#specify-environment-directories-envs-dirs
+conda config --add envs_dirs ~/scratch/envs
+
+# Working Environment Setup 
+# Install conda with some geospatial and webscraping labs. The conda environment will be called 'susdev'
+conda create -n susdev gdal scipy seaborn requests beautifulsoup4 jupyterlab rasterio -y
+# This should change `base` in your command line to susdev, showing that those packages are loaded instead of the miniconda ones. 
+conda activate susdev
+# Install jupyter config
+jupyter notebook --generate-config
+```
+
+#### Optional: Adding R and Julia Kernels to your jupyter notebook
+
+```bash
+cd ~/scratch/envs
+mkdir rpackages
+module load R/3.6.2
+# Edited to add IR kernel
+Rscript ~/scratch/hpc_jupyter_setup/Tutorial_28Feb2020/install_Rpackages_HABANERO.R 
+```
+    
+Julia to be added. Matlab in testing.
+
+### Accessing Jupyter from your local machine. 
+Now you have setup jupyterlab, you want to run a server!
+
+You need to set a password so not everyone can access your server. You can do this by typing in `jupyter notebook password` and following the interactive instructions. You can see some other methods [here](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html#automatic-password-setup)
+    
+Now you want to copy [./sjupyter.sbatch] to home. You will want to edit it suing vim or nano following the sbatch [cheatsheet](https://github.com/taneugene/hpc_jupyter_setup/blob/master/cheatsheet_SBATCH-commands.pdf), most likely for the memory (default 4GB), account (replace sscc with your `<group>`), and choose between Jupyterlab or jupyter notebook by commenting or uncommenting the last line.
+    
+```bash
+cd ~
+cp ~/scratch/hpc_jupyter_setup/sjupyter.sbatch ~
+# submit an sbatch script
+sbatch ~/sjupyter.sbatch
+```
+    
+Now you've submitted a 'job' to slurm. At some point it will be fulfilled. You can check the status by running `squeue -u <user>`. You can also copy squeue.sh from this repo to your home directory and just run `~/squeue.sh` from anywhere at any time to check the status.
+    
+Once your job is running (no longer pending), you should see a log in your home directory. View it (`cat node<###>-<jobid>_jupyter.log`) and scroll to the top, and there some instructions.
+    
+On Mac, find this line that fits this format and copy and paste it. 
+`ssh -N -L ${port}:${node}:${port} ${user}@habanero.rcs.columbia.edu`
+On your local terminal, (just open a new tab on terminal), paste and run it!
+The -L binds the port, and the -N just forwards the port.
+
+Then find the line with:
+'Use a Browser on your local machine to go to:
+localhost:${port}  (prefix w/ https:// if using password)'
+Enter that into your web browser and you should be prompted for your password, and you should have Jupyter lab up and running
+
+#### Shutting down
+Whenever you finish using Jupyter, save your work then run ./squeue.sh or `squeue -u <UNI>`. You should see a job number. Then finish your job by running `scancel JOBID`.
+
+If you want to shut down the interactive job, just type `exit` onto the command line. 
+
+#### Setup notes for the internet
+This setup is geared towards Sustainable Development PhD students.  What that means is that I've optimized  for usage of:
 * Large Datasets
     * Habanero only provides 10GB of private space, so we minimize use of that wherever possible, so we utilize the scratch space wherever possible.
     * So we installs environment(s) in the scratch space.   
@@ -100,22 +196,3 @@ This setup is geared towards Sustainable Development PhD students.  What that me
 * Working with geopspatial and other software languages
     * GDAL (the base geospatial library for nearly anything) notoriously breaks installations if you don't do it right off the bat, so we do that when installing.
     * People use matlab, R, julia, python, and we want to set them up to be interoperable on jupyter. We'll use the julia version from modules, follow Claire's work on R but add IRkernel, and will figure out matlab eventually...
- 
-### 
-
- * > 
- * > mkdir {UNI}
- * > chmod 2700 {UNI}
- * > cd {UNI}
- * > scratch=$(pwd)
- * > user=$(whoami)
- * > add a symbolic link
- * > cd ~
- * > ln -s ${scratch}/${user} scratch
-1. Install miniconda
- Run sbash.sh (this is just srun --pty -A <group> /bin/bash)
-     > mv sbash.sh ~ # move sbash script to your home directory
-     > mv conda_install.sh ~ 
-     > chmod 755 sbash.sh # change permissions so you can run a script
-     > chmod 755 conda_install.sh
-     > ./sbash # Runs the script.  In a few seconds, you'll have a 4GB interactive core on a *node* running bash. Keep this here because you can always access a node quickly using it.

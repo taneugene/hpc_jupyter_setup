@@ -6,5 +6,5 @@ list_packages = list("hms","IRkernel")
 chooseCRANmirror(graphics=FALSE,ind=58)
 
 for (i in 1:length(list_packages)) {
-  install.packages(list_packages[[i]], lib = "~/envs/rpackages", quiet = TRUE)
+  install.packages(list_packages[[i]], lib = "~/scratch/envs/rpackages", quiet = TRUE)
 }

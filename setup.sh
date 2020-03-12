@@ -1,37 +1,28 @@
-#Make sure that you cloned the git directory to your scratch space. 
-scratch=$(pwd)
-user=$(whoami)
+# Installs miniconda and an environment called susdev
 
-# Go to scratch space for the sscc group
-cd ${scratch}
+# Conda setup
 
-# if the directory isn't there make it
-mkdir ${user}
-
-# change security 
-chmod 2700 ${user}
-
-# add a symbolic link
-cd ~
-ln -s ${scratch}/${user} scratch
-
-# Set your default environment dircectory to be scratch
-# https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#specify-environment-directories-envs-dirs
-# Append scratch to conda rc
-
-# we don't use module load because there are errors in install that conda update conda would fix. 
-module load anaconda/3-5.1 
-
+# Download miniconda to home
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+# run miniconda, install in your scratch directory
 bash ~/miniconda.sh -p ~/scratch/miniconda
+# add conda to your path 
 eval "$(/rigel/sscc/users/pt2535/miniconda/bin/conda shell.bash hook)"
+# set conda to run every time you login
 conda init
+# add a channel (with geospatial libraries) and prioritize it
 conda config --add channels conda-forge
-# breaks with conda 3-5.1, need this for rasterio
+# this breaks with conda 4.5, so this is why we install miniconda manually
 conda config --set channel_priority strict
+# Set your default environment dircectory to be scratch
+# IMPORTANT: we need the scratch symbolic link in the home directory as in the last section!
+# https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#specify-environment-directories-envs-dirs
 conda config --add envs_dirs ~/scratch/envs
-conda create -n susdev gdal scipy seaborn requests beautifulsoup4 jupyterlab rasterio -y
-conda activate susdev
-jupyter notebook --generate-config
-jupyter notebook password
 
+# Working Environment Setup 
+# Install conda with some geospatial and webscraping labs. The conda environment will be called 'susdev'
+conda create -n susdev gdal scipy seaborn requests beautifulsoup4 jupyterlab rasterio -y
+# This should change `base` in your command line to susdev, showing that those packages are loaded instead of the miniconda ones. 
+conda activate susdev
+# Install jupyter config
+jupyter notebook --generate-config

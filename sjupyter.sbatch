@@ -50,3 +50,5 @@ source activate susdev
 # DO USE TOKEN BELOW
 # Set your password first following the instructions in jupyternotebook config
 jupyter-lab --no-browser --port=${port} --ip=${node}
+# jupyter-notebook --no-browser --port=${port} --ip=${node}
+
