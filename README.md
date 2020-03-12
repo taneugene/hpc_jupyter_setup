@@ -1,16 +1,16 @@
 # High Performance Computing using Habanero for SusDev PhD students
 
+This fork of Claire's repository but adds to it by providing instructions for working on Jupyter, GPUs, adding R and julia kernels. 
+
 Habanero is a High Performance Computing (HPC) cluster that grants Columbia researchers and students access to shared supercomputing resources, i.e. a network of computers with professional computational capabilities. Use it when you are 
 * You have a heavy computing 'job' or that is slowing down your personal computer, requires more memory/data than your personal computer can accomodate, or just would take too long.  (typically 1x 8GB node)
 * Running a Monte Carlo simulation, one job per parameter setting (i.e. nx4GB nodes)
 * Using a GPU for Neural network applications (i.e. GPU + cuda)
 * Running a server (e.g. Jupyter!) 
 
-This fork of Claire's repository but adds to it by providing instructions for working on Jupyter, GPUs, adding R, julia kernels to jupyter etc
-
-Some HPC basics: [useful link](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Getting+Started)
+Some HPC basics: 
 * Get Access to Habanero by asking Doug or asking Eric Vlach at ISERP. Eric would add you to the Social Science Computing Committee (sscc) group. 
-* You will be interacting with a remote server: we do that through a Unix-shell, using the SSH (Secure Shell) Protocol.  For Mac users, use the 'Terminal' app. For Windows users, you will need to [SSH via PuTTY](https://www.ssh.com/ssh/putty/windows/)
+* You will be interacting with a remote server: we do that through a Unix-shell, using the SSH (Secure Shell) Protocol.  For Mac users, use the 'Terminal' app. For Windows users, you will need to [SSH via PuTTY](https://www.ssh.com/ssh/putty/windows/).
 * When you log in, you will typically see this Very Important Notice, so when you login you will either need to 'interactively' srun to a node (typically small one-off jobs,  *including while installing packages*) or sbatch (wrap a script that does all processing you want and saves all the output to disk in a wrapper) to send your script to a node.
     > ATTENTION ATTENTION!
 Very Important Notice:
@@ -22,8 +22,7 @@ Users who break the above rule abuse this shared resource, cause delays for
 other cluster users, end up on our watch list - and eventually will get 
 penalized. For more details, see:
 [https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Submitting
-+Jobs#Habanero-SubmittingJobs-RestrictionsonLoginNodeUsage](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Submitting
-+Jobs#Habanero-SubmittingJobs-RestrictionsonLoginNodeUsage)
++Jobs#Habanero-SubmittingJobs-RestrictionsonLoginNodeUsage](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Submitting+Jobs#Habanero-SubmittingJobs-RestrictionsonLoginNodeUsage)
 * The more resources you are asking for, the more time it will take Habanero to get your 'job' done (because you will be put lower on the priority list -- many people are sending jobs to the cluster at the same time and the cluster needs to  queue/order those.) Typically a 4GB job takes less than a second to allocate. A 8GB job can be a few minutes.  More than that can take up to half an hour. 
 
 ## Some Printouts (R based)
@@ -35,30 +34,25 @@ penalized. For more details, see:
 
 ## Why run Jupyter on Habanero?
 
-[Jupyter](https://jupyter.org/) is a server-based IDE for hosting notebooks, which have become a great platform for hosting data, code, but especially for doing exploratory or visual work. Running it on the HPC is beneficial relative to running a jupyter notebook locally because
- - lots of processing power if needed (GPUs, parallelization)
+[Jupyter](https://jupyter.org/) is a server-based IDE for hosting notebooks, which have become a great platform for hosting data, code, but especially for doing exploratory or visual work. Running it on the HPC is beneficial relative to running a jupyter notebook locally because you can:
+ - use lots of processing power if needed (GPUs, parallelization)
  - access the server from school computers to give presentations!
  - keep it running over night without consuming your power or interrupting your daily flow.
 
 This repo combines the following resources:
  - my own setup, 
  - Claire's presentation (forked) 
- - guide from the [Research Computing in Natural Sciences course](https://rabernat.github.io/research_computing/introduction-to-the-habanero-hpc-cluster.html) and the [Eaton Lab](https://eaton-lab.org/articles/Eaton-lab-HPC-setup/)
+ - guides from the [Research Computing in Natural Sciences course](https://rabernat.github.io/research_computing/introduction-to-the-habanero-hpc-cluster.html) and the [Eaton Lab](https://eaton-lab.org/articles/Eaton-lab-HPC-setup/)
  - [official Habanero documentation](https://confluence.columbia.edu/confluence/display/rcs/Habanero+HPC+Cluster+User+Documentation) 
  
-I try to present a guide on *optimally* setting up working environments on slurm for a Sustainable Development PhD student.  What that means is this guide differs from the others in that we'll account for usage of:
+This setup is geared towards Sustainable Development PhD students.  What that means is that we'll account for usage of:
 * Large Datasets
-    Habanero only provides 10GB of private space, so we minimize use of that wherever possible, so we utilize the scratch space wherever possible:
-    * Installs environment(s) in the scratch space.   
-    * ? miniconda in the home dir/spider because we can't install our own packages, which defeats the purpose of anaconda
-* Working with geopspatial data
-    * GDAL (the base geospatial library for nearly anything) breaks to install if you don't do it right off the bat, so we do that right away.
-* Different software
-    * Customization - a lot of geospatial libraries use conda-forge, and setting up conda-forge to work easily breaks with conda 4.5, so we'll install and run our own conda instead of the one provided by [modules](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Software)
-    * People use matlab, R, julia, python, and we want to set them up to be interoperable on jupyter. We'll use the julia version from modules, follow Claire's work on R, and will figure out matlab eventually...
-* Not CS students - make things simple
-    * Use aliases and lots of symbolic links so we don't have to remember things. 
-    * May just write a script to do everything for you...
+    * Habanero only provides 10GB of private space, so we minimize use of that wherever possible, so we utilize the scratch space wherever possible.
+    * So we installs environment(s) in the scratch space.   
+    * We use miniconda in the home directory because conda 4.8 fixes a lot of bugs related to config and the latest version of conda on [modules](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Software) is 4.4
+* Working with geopspatial and other software languages
+    * GDAL (the base geospatial library for nearly anything) notoriously breaks installations if you don't do it right off the bat, so we do that when installing.
+    * People use matlab, R, julia, python, and we want to set them up to be interoperable on jupyter. We'll use the julia version from modules, follow Claire's work on R but add IRkernel, and will figure out matlab eventually...
     
 ## Setup Habanero with Jupyter 
 Basics (without Jupyter):
@@ -77,7 +71,7 @@ Basics (without Jupyter):
  > cd {UNI}
  > scratch=$(pwd)
  > user=$(whoami)
- > # add a symbolic link
+ > add a symbolic link
  > cd ~
  > ln -s ${scratch}/${user} scratch
 1. Install miniconda
