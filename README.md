@@ -1,5 +1,15 @@
 # High Performance Computing using Habanero for SusDev PhD students
 
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Printouts](#some-printouts-r-based)
+3. [Why run Jupyter on Habanero](#why-run-jupyter-on-habanero)
+4. [Setup without Jupyter](#setup-habanero-without-jupyter)
+5. [Setup with Jupyter](#setup-habanero-with-jupyter)
+6. [Design-Notes](#design-notes)
+
+## Introduction
+
 This fork of Claire's repository but adds to it by providing instructions for working on Jupyter, GPUs, adding R and julia kernels. 
 
 Habanero is a High Performance Computing (HPC) cluster that grants Columbia researchers and students access to shared supercomputing resources, i.e. a network of computers with professional computational capabilities. Use it when you are 
@@ -52,14 +62,19 @@ Basics (without Jupyter):
 
 ## Setup Habanero with Jupyter
 
+#### Preamble
+
+NB: Replace <group> or with your account (e.g. cwc, sscc) and <user> or <UNI> or ${UNI} with your uni throughout this walkthrough. Replace ${scratch} or <scratch> with your path /rigel/<group>/users/ 
+`<>` brackets mean you have to change them. `${}` means that if you set up variables then you can copy and paste the script including them inside. 
+
 #### Access Habanero
  * You are entitled to a free account. Go here to submit [a request form](https://columbia.servicenow.com/cu?id=sc_cat_item_cu&sys_id=9876ecc213bd160006c376022244b00a) for free HPC access.
  * You can ask to be added as a new user to an existing HPC group (e.g.: cwc; sipa). Current HPC customers can request access to their HPC group for a new user by emailing rcs@columbia.edu (e.g.: to be added as a new user to the SIPA group, ask Doug to request that access for you)
  * (recommended) Eric Vlach is at ISERP and can give you access to the Social Science Computing Committee (sscc) group.  They have much more space than SIPA...
 
 #### SSH into Habanero
-1. SSH into habanero (windows requires the [PuTTY SSH client](https://www.ssh.com/ssh/putty/windows))
- * `ssh <UNI>@habanero.rcs.columbia.edu`
+SSH into habanero (windows requires the [PuTTY SSH client](https://www.ssh.com/ssh/putty/windows))
+ >`ssh <UNI>@habanero.rcs.columbia.edu`
  * You can set up the command to just be `ssh habanero`, by [setting up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/).
  * [(optional for github users) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh). I tend to commit everything back and forth (apart from data which I exclude using [.gitignore](https://git-scm.com/docs/gitignore)) to sync my computer and habanero.
  
@@ -68,13 +83,9 @@ When you login to Habanero, you will be at your home directory `~` on a login no
 `[pt2535@holmes ~]$`
 This directory has 10GB. Appropriate for smaller files: docs, source code, scripts, but in general it's not enough. 
 
-You also have your group account's scratch storage `/rigel/<group>`. It's known as scratch storage because it isn't backed up!
- > Ex: /rigel/cwc and /rigel/sscc has size = 20 TB, no default User Quota.
+You also have your group account's scratch storage `/rigel/<group>`. It's known as scratch storage because it isn't backed up! Ex: /rigel/cwc and /rigel/sscc has size = 20 TB, no default User Quota.
  
 We want to set up a 'personal folder' in the group directory that other people in the group can't access, delete or modify by changing their permission settings. Furthermore we want to make it easy to access (we'll create a shortcut known as a [symbolic link](https://en.wikipedia.org/wiki/Symbolic_link)) because 10GB runs out really quickly. 
-
-NB: Replace <group> or with your account (e.g. cwc, sscc) and <user> or <UNI> or ${UNI} with your uni throughout this walkthrough. Replace ${scratch} or <scratch> with your path /rigel/<group>/users/ 
-> `<>` brackets mean you have to change them. `${}` means that if you set up variables then you can copy and paste the script including them inside. 
 
 ```bash
 # Navigate to your group accounts scratch storage
@@ -105,11 +116,11 @@ From the link:
 > To submit an interactive job, run the following, where "<ACCOUNT>" is your group's account name.   
 `srun --pty -t 0-01:00 -A <ACCOUNT> /bin/bash`
 
-What this means is that you'll have an hour to run bash on this account. I like to not remember this, so I save it as a script ([sbash.sh](./sbash.sh)), which I put in my root directory `mv sbash.sh ~` so I can always switch from login to interactive by typing just `~/sbash.sh'. You may have to give the script permission to execute `chmod 755 ~/sbash.sh`. I remove the walltime. If you're not on group sscc, you may need to modify that script. 
+What this means is that you'll have an hour to run bash on this account. I like to not remember this, so I save it as a script ([sbash.sh](./sbash.sh)), which I put in my root directory `mv ~/scratch/hpc_jupyter_setup/sbash.sh ~` so I can always switch from login to interactive by typing just `~/sbash.sh'. You may have to give the script permission to execute `chmod 755 ~/sbash.sh`. I remove the walltime. If you're not on group sscc, you may need to modify that script. 
     
 Running the srun script, you should notice that the bar is different: `[pt2535@node059 ~]$`. Now you're on a compute node! 
 
-Now, you can copy over the [setup.sh](./setup.sh) script and just run it, or you can run each line by yourself and learn some bash.
+Now, you can copy over the [setup.sh](./setup.sh) script and just run it, or you can run each line by yourself:
 
 ```bash
 # Installs miniconda and an environment called susdev
@@ -143,28 +154,31 @@ jupyter notebook --generate-config
 ```
 
 #### Optional: Adding R and Julia Kernels to your jupyter notebook
-
+    
 ```bash
+# Create a rpackages directory in envs
 cd ~/scratch/envs
 mkdir rpackages
+# Load the latest version of R from modules
 module load R/3.6.2
-# Edited to add IR kernel
+# Run an install packages script (including IR kernel)
 Rscript ~/scratch/hpc_jupyter_setup/Tutorial_28Feb2020/install_Rpackages_HABANERO.R 
 ```
     
 Julia to be added. Matlab in testing.
 
-### Accessing Jupyter from your local machine. 
+#### Accessing Jupyter from your local machine. 
 Now you have setup jupyterlab, you want to run a server!
 
 You need to set a password so not everyone can access your server. You can do this by typing in `jupyter notebook password` and following the interactive instructions. You can see some other methods [here](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html#automatic-password-setup)
     
-Now you want to copy [./sjupyter.sbatch] to home. You will want to edit it suing vim or nano following the sbatch [cheatsheet](https://github.com/taneugene/hpc_jupyter_setup/blob/master/cheatsheet_SBATCH-commands.pdf), most likely for the memory (default 4GB), account (replace sscc with your `<group>`), and choose between Jupyterlab or jupyter notebook by commenting or uncommenting the last line.
+Now you want to copy [./sjupyter.sbatch](sjupyter.sbatch) to home. You will want to edit it suing vim or nano following the sbatch [cheatsheet](https://github.com/taneugene/hpc_jupyter_setup/blob/master/cheatsheet_SBATCH-commands.pdf), most likely for the memory (default 4GB), account (replace `sscc` with your `<group>`), and choose between Jupyterlab or jupyter notebook by commenting or uncommenting the last line.
     
 ```bash
+# copy the sjupyter script to home directory    
 cd ~
 cp ~/scratch/hpc_jupyter_setup/sjupyter.sbatch ~
-# submit an sbatch script
+# submit an sbatch script that wraps your jupyter server
 sbatch ~/sjupyter.sbatch
 ```
     
@@ -178,16 +192,18 @@ On your local terminal, (just open a new tab on terminal), paste and run it!
 The -L binds the port, and the -N just forwards the port.
 
 Then find the line with:
+```
 'Use a Browser on your local machine to go to:
 localhost:${port}  (prefix w/ https:// if using password)'
 Enter that into your web browser and you should be prompted for your password, and you should have Jupyter lab up and running
+```
 
 #### Shutting down
 Whenever you finish using Jupyter, save your work then run ./squeue.sh or `squeue -u <UNI>`. You should see a job number. Then finish your job by running `scancel JOBID`.
 
 If you want to shut down the interactive job, just type `exit` onto the command line. 
 
-#### Setup notes for the internet
+## Design notes
 This setup is geared towards Sustainable Development PhD students.  What that means is that I've optimized  for usage of:
 * Large Datasets
     * Habanero only provides 10GB of private space, so we minimize use of that wherever possible, so we utilize the scratch space wherever possible.
