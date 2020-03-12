@@ -151,6 +151,8 @@ conda create -n susdev gdal scipy seaborn requests beautifulsoup4 jupyterlab ras
 conda activate susdev
 # Install jupyter config
 jupyter notebook --generate-config
+# Add kernel to jupyter spec
+jupyter kernelspec install ~/scratch/envs/susdev/ --user
 ```
 
 #### Optional: Adding R and Julia Kernels to your jupyter notebook
