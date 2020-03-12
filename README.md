@@ -164,7 +164,13 @@ mkdir rpackages
 # Load the latest version of R from modules
 module load R/3.6.2
 # Run an install packages script (including IR kernel)
-Rscript ~/scratch/hpc_jupyter_setup/Tutorial_28Feb2020/install_Rpackages_HABANERO.R 
+# Rscript ~/scratch/hpc_jupyter_setup/Tutorial_28Feb2020/install_Rpackages_HABANERO.R 
+    
+R
+# From within R
+.libPaths("~/scratch/envs/rpackages")
+install.packages(c('repr', 'IRdisplay', 'IRkernel','pdbZMQ'), type = 'source')
+IRkernel::installspec()
 ```
     
 Julia to be added. Matlab in testing.
