@@ -45,10 +45,52 @@ This repo combines the following resources:
  - guides from the [Research Computing in Natural Sciences course](https://rabernat.github.io/research_computing/introduction-to-the-habanero-hpc-cluster.html) and the [Eaton Lab](https://eaton-lab.org/articles/Eaton-lab-HPC-setup/)
  - [official Habanero documentation](https://confluence.columbia.edu/confluence/display/rcs/Habanero+HPC+Cluster+User+Documentation) 
     
-## Setup Habanero with Jupyter 
+## Setup Habanero without Jupyter 
 Basics (without Jupyter):
 * [How_to_use_Habanero.pdf](https://github.com/ClairePalandri/HABANERO-HPC_material/blob/master/How_to_use_Habanero.pdf)
 * [Habanero documentation](https://confluence.columbia.edu/confluence/display/rcs/Habanero+-+Getting+Started)
+
+## Setup Habanero with Jupyter
+
+#### Access Habanero
+ * You are entitled to a free account. Go here to submit [a request form](https://columbia.servicenow.com/cu?id=sc_cat_item_cu&sys_id=9876ecc213bd160006c376022244b00a) for free HPC access.
+ * You can ask to be added as a new user to an existing HPC group (e.g.: cwc; sipa). Current HPC customers can request access to their HPC group for a new user by emailing rcs@columbia.edu (e.g.: to be added as a new user to the SIPA group, ask Doug to request that access for you)
+ * (recommended) Eric Vlach is at ISERP and can give you access to the Social Science Computing Committee (sscc) group.  They have much more space than SIPA...
+
+#### SSH into Habanero
+1. SSH into habanero (windows requires the [PuTTY SSH client](https://www.ssh.com/ssh/putty/windows))
+ * `ssh <UNI>@habanero.rcs.columbia.edu`
+ * You can set up the command to just be `ssh habanero`, by [setting up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/)
+ * [(optional) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
+ 
+#### Scratch Storage
+When you login to Habanero, you will be at your home directory `~` on a login node (holmes, watson). So you should see something like this:
+`[pt2535@holmes ~]$`
+This directory has 10GB. Appropriate for smaller files: docs, source code, scripts, but in general it's not enough. 
+
+You also have your group account's scratch storage /rigel/<group>. It's known as scratch storage because it isn't backed up!
+ > Ex: /rigel/cwc and /rigel/sscc has size = 20 TB, no default User Quota.
+We want to set up a 'personal folder' in the group directory that other people in the group can't access, delete or modify by changing their permission settings. Furthermore we want to make it easy to access (we'll create a shortcut known as a [symbolic link](https://en.wikipedia.org/wiki/Symbolic_link)) because 10GB runs out really quickly. 
+
+NB: Replace <group> or with your account (e.g. cwc, sscc) and <user> or <UNI> or ${UNI} with your uni throughout this walkthrough. Replace ${scratch} pr <scratch> with your path /rigel/<group>/users/
+```
+# Navigate to your group accounts scratch storage
+cd /rigel/<group>/users 
+ls -l # notice that some people's security settings mean you can access their files.
+# Sets up local variables 
+scratch=$(pwd)
+user=$(whoami)
+# Make a directory isn't there make it
+mkdir ${user}
+# Remove group access
+chmod 2700 ${user}
+# add a symbolic link to your home directory
+cd ~
+ln -s ${scratch}/${user} scratch
+```
+
+
+
 
 This setup is geared towards Sustainable Development PhD students.  What that means is that we'll account for usage of:
 * Large Datasets
@@ -58,23 +100,10 @@ This setup is geared towards Sustainable Development PhD students.  What that me
 * Working with geopspatial and other software languages
     * GDAL (the base geospatial library for nearly anything) notoriously breaks installations if you don't do it right off the bat, so we do that when installing.
     * People use matlab, R, julia, python, and we want to set them up to be interoperable on jupyter. We'll use the julia version from modules, follow Claire's work on R but add IRkernel, and will figure out matlab eventually...
-
-### Instructions
-1. Make sure you have access to Habanero! Ask Doug or Eric Vlach. 
-1. SSH into habanero (windows requires the [PuTTY SSH client](https://www.ssh.com/ssh/putty/windows))
- * `ssh <UNI>@habanero.rcs.columbia.edu`
- * You can set up the command to just be `ssh habanero`, by [setting up an ssh alias](https://www.howtogeek.com/75007/stupid-geek-tricks-use-your-ssh-config-file-to-create-aliases-for-hosts/)
- * [(optional) Add github keys to habanero(https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
-1. Set up your scratch space
- * You will be given a group when you are given access to Habanero. You most likely will be part of the 'SSCC' group. This means that you have access to your \$HOME directory (10GB) at `/rigel/home/<UNI>`, and your group directory (10-20TB) at `rigel/sscc/`
- * We want to set up a 'personal folder' in the group directory that other people in the group can't access, delete or modify. Furthermore we want to make it easy to access (we'll create a shortcut known as a [symbolic link](https://en.wikipedia.org/wiki/Symbolic_link)) because 10GB runs out really quickly.
- * Navigate to your group directory
-  > `cd /rigel/{group}/users/
  
+### 
 
-
- * > `cd /rigel/{group}/users/
- * > ls -l
+ * > 
  * > mkdir {UNI}
  * > chmod 2700 {UNI}
  * > cd {UNI}
